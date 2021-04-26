@@ -23,12 +23,9 @@ public class MainActivity extends Activity {
 
     AlarmManager manager;
 
-    ListView alarmList;
+    ListView alarmListView;
 
-    ArrayList<String> times = new ArrayList<>();
-    ArrayList<String> descriptions = new ArrayList<>();
-    ArrayList<String> songs = new ArrayList<>();
-    boolean[] actives = new boolean[100];
+    ArrayList<Alarm> alarmList = new ArrayList<>(100);
 
     private boolean firstOpen = true;
     private int alarmNr;
@@ -37,22 +34,17 @@ public class MainActivity extends Activity {
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         System.out.println("restore");
-//        alarmNr = savedInstanceState.getInt("alarmNr");
-//        times = savedInstanceState.getStringArrayList("times");
-//        songs = savedInstanceState.getStringArrayList("songs");
-//        descriptions = savedInstanceState.getStringArrayList("descriptions");
-//        actives = savedInstanceState.getBooleanArray("actives");
+
+        if(savedInstanceState.containsKey("alarmList"))
+            alarmList = savedInstanceState.getParcelableArrayList("alarmList");
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         System.out.println("save");
-//        outState.putInt("alarmNr", alarmNr);
-//        outState.putStringArrayList("times", times);
-//        outState.putStringArrayList("songs", songs);
-//        outState.putStringArrayList("descriptions", descriptions);
-//        outState.putBooleanArray("actives", actives);
+
+        outState.putParcelableArrayList("alarmList", alarmList);
     }
 
     @Override
@@ -67,36 +59,34 @@ public class MainActivity extends Activity {
         if(extras == null)
             return;
 
+        String time = null, description = null, song = null;
         if (extras.containsKey("time")) {
-            times.add(extras.getString("time"));
-//            System.out.println(times);
-//            System.out.println(times.size());
+            time = extras.getString("time");
         }
         if (extras.containsKey("description")) {
-            descriptions.add(extras.getString("description"));
-//            System.out.println(descriptions);
-//            System.out.println(descriptions.size());
+            description = extras.getString("description");
         }
         if(extras.containsKey("song")) {
-            songs.add(extras.getString("song"));
-//            System.out.println(songs);
-//            System.out.println(songs.size());
+            song = extras.getString("song");
         }
-        actives[alarmNr] = true;
 
-        alarmList = (ListView) findViewById(R.id.simpleListView);
-        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), times, descriptions, songs, actives);
-        alarmList.setAdapter(alarmAdapter);
+        if(time == null || description == null || song == null)
+        {
+            Toast.makeText(this,"Something went wrong", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        alarmList.add(new Alarm(time, description, song, true, null));
+
+        alarmListView = (ListView) findViewById(R.id.simpleListView);
+        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
+        alarmListView.setAdapter(alarmAdapter);
 
         // actually set the alarm
         Calendar cal_alarm = Calendar.getInstance();
         Calendar cal_now = Calendar.getInstance();
 
-        String time = times.get(alarmNr);
-
-//        System.out.println(time);
-//        System.out.println(Integer.parseInt(time.substring(0,2)));
-//        System.out.println(Integer.parseInt(time.substring(3,5)));
+        time = alarmList.get(alarmNr).time;
 
         cal_alarm.set(Calendar.HOUR_OF_DAY,Integer.parseInt(time.substring(0,2)));
         cal_alarm.set(Calendar.MINUTE,Integer.parseInt(time.substring(3,5)));
@@ -125,22 +115,13 @@ public class MainActivity extends Activity {
         if(firstOpen){
             alarmNr = 3;
             firstOpen = false;
-            times.add("08:00");
-            times.add("12:12");
-            times.add("23:15");
-            descriptions.add("Dentist");
-            descriptions.add("Smechereala");
-            descriptions.add("Somn");
-            songs.add("ppc1");
-            songs.add(null);
-            songs.add("ppc2");
-            actives[0] = true;
-            actives[1] = true;
-            actives[2] = false;
+            alarmList.add(new Alarm("08:00","Dentist","ppc1",true,null));
+            alarmList.add(new Alarm("12:12","Smechereala",null,true,null));
+            alarmList.add(new Alarm("23:15","Somn","ppc2",false,null));
         }
-        alarmList = (ListView) findViewById(R.id.simpleListView);
-        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), times, descriptions, songs, actives);
-        alarmList.setAdapter(alarmAdapter);
+        alarmListView = (ListView) findViewById(R.id.simpleListView);
+        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
+        alarmListView.setAdapter(alarmAdapter);
     }
 
     public void addAlarm(View view) {

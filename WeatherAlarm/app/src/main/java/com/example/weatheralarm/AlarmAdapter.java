@@ -15,10 +15,7 @@ import java.util.ArrayList;
 
 public class AlarmAdapter extends BaseAdapter {
     Context context;
-    ArrayList<String> times;
-    ArrayList<String> descriptions;
-    ArrayList<String> songs;
-    boolean[] actives;
+    ArrayList<Alarm> alarmList;
     LayoutInflater inflater;
 
     public AlarmAdapter(Context applicationContext) {
@@ -26,18 +23,15 @@ public class AlarmAdapter extends BaseAdapter {
         inflater = LayoutInflater.from(applicationContext);
     }
 
-    public AlarmAdapter(Context applicationContext, ArrayList<String> times, ArrayList<String> descriptions, ArrayList<String> songs, boolean[] actives) {
+    public AlarmAdapter(Context applicationContext, ArrayList<Alarm> alarmList) {
         this.context = applicationContext;
-        this.times = times;
-        this.descriptions = descriptions;
-        this.songs = songs;
-        this.actives = actives;
+        this.alarmList = alarmList;
         inflater = LayoutInflater.from(applicationContext);
     }
 
     @Override
     public int getCount() {
-        return times.size();
+        return alarmList.size();
     }
 
     @Override
@@ -62,9 +56,9 @@ public class AlarmAdapter extends BaseAdapter {
         Switch activeSwitch = (Switch) convertView.findViewById(R.id.activeSwitch);
 
 
-        timeTextView.setText(times.get(i));
-        descriptiontextView.setText(descriptions.get(i));
-        activeSwitch.setChecked(actives[i]);
+        timeTextView.setText(alarmList.get(i).time);
+        descriptiontextView.setText(alarmList.get(i).description);
+        activeSwitch.setChecked(alarmList.get(i).active);
 
         return convertView;
     }
