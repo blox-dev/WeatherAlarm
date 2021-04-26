@@ -11,6 +11,8 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
+import com.google.android.material.theme.MaterialComponentsViewInflater;
+
 import java.util.ArrayList;
 
 public class AlarmAdapter extends BaseAdapter {
@@ -55,10 +57,11 @@ public class AlarmAdapter extends BaseAdapter {
         TextView descriptiontextView = (TextView) convertView.findViewById(R.id.descriptionTextView);
         Switch activeSwitch = (Switch) convertView.findViewById(R.id.activeSwitch);
 
-
         timeTextView.setText(alarmList.get(i).time);
         descriptiontextView.setText(alarmList.get(i).description);
         activeSwitch.setChecked(alarmList.get(i).active);
+
+        activeSwitch.setOnClickListener(v -> MainActivity.switchActive(alarmList.get(i), activeSwitch.isChecked()));
 
         return convertView;
     }

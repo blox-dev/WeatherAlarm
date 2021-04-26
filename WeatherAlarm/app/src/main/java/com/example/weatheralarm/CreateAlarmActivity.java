@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -45,9 +46,9 @@ public class CreateAlarmActivity extends AppCompatActivity {
         for(int i=0 ; i<60 ; ++i)
             minuteList.add(i<10 ? '0' + String.valueOf(i) : String.valueOf(i));
 
-        songsList.add("ppc1");
+        songsList.add("alarm_a2");
+        songsList.add("ambiance");
         songsList.add("ship_bell");
-        songsList.add("ppc2");
 
         ArrayAdapter<String> hourAdapter= new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, hourList);
         hourSpinner.setAdapter(hourAdapter);
