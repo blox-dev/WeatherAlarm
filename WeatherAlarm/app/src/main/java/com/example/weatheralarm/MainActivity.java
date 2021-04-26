@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 
 public class MainActivity extends Activity {
@@ -25,10 +26,9 @@ public class MainActivity extends Activity {
 
     ListView alarmListView;
 
-    ArrayList<Alarm> alarmList = new ArrayList<>(100);
+    ArrayList<Alarm> alarmList = new ArrayList<>();
 
     private boolean firstOpen = true;
-    private int alarmNr;
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
@@ -76,17 +76,9 @@ public class MainActivity extends Activity {
             return;
         }
 
-        alarmList.add(new Alarm(time, description, song, true, null));
-
-        alarmListView = (ListView) findViewById(R.id.simpleListView);
-        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
-        alarmListView.setAdapter(alarmAdapter);
-
         // actually set the alarm
         Calendar cal_alarm = Calendar.getInstance();
         Calendar cal_now = Calendar.getInstance();
-
-        time = alarmList.get(alarmNr).time;
 
         cal_alarm.set(Calendar.HOUR_OF_DAY,Integer.parseInt(time.substring(0,2)));
         cal_alarm.set(Calendar.MINUTE,Integer.parseInt(time.substring(3,5)));
@@ -95,16 +87,29 @@ public class MainActivity extends Activity {
             cal_alarm.add(Calendar.DATE,1);
         }
 
+//        System.out.println(time);
         System.out.println("Yep clock: " + (cal_alarm.getTimeInMillis() - cal_now.getTimeInMillis()) / 1000);
-        Intent myIntent = new Intent(this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, myIntent, 0);
+
+        Intent myIntent = new Intent(this, TriggerAlarmActivity.class);
+
+        myIntent.putExtra("time", time);
+        myIntent.putExtra("description", description);
+        myIntent.putExtra("song", song);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, myIntent, PendingIntent.FLAG_ONE_SHOT);
 
         manager.set(AlarmManager.RTC_WAKEUP,cal_alarm.getTimeInMillis(), pendingIntent);
 
-        alarmNr++;
+        Alarm alarm = new Alarm(time, description, song, true, pendingIntent);
+
+        alarmList.add(alarm);
+        Collections.sort(alarmList);
+
+        alarmListView = (ListView) findViewById(R.id.simpleListView);
+        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
+        alarmListView.setAdapter(alarmAdapter);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,19 +118,19 @@ public class MainActivity extends Activity {
         manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         if(firstOpen){
-            alarmNr = 3;
             firstOpen = false;
             alarmList.add(new Alarm("08:00","Dentist","ppc1",true,null));
             alarmList.add(new Alarm("12:12","Smechereala",null,true,null));
             alarmList.add(new Alarm("23:15","Somn","ppc2",false,null));
         }
+        Collections.sort(alarmList);
         alarmListView = (ListView) findViewById(R.id.simpleListView);
         AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
         alarmListView.setAdapter(alarmAdapter);
     }
 
     public void addAlarm(View view) {
-        if(alarmNr > 99)
+        if(alarmList.size() > 99)
             Toast.makeText(this, "Too many alarms lol", Toast.LENGTH_LONG).show();
         else {
             Intent intent = new Intent(this, CreateAlarmActivity.class);

@@ -4,7 +4,7 @@ import android.app.PendingIntent;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Alarm implements Parcelable {
+public class Alarm implements Parcelable, Comparable {
     String time;
     String description;
     String song;
@@ -64,5 +64,14 @@ public class Alarm implements Parcelable {
         dest.writeString(song);
         dest.writeByte((byte) (active ? 1 : 0));
         dest.writeParcelable(pendingIntent, flags);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if(!(o instanceof Alarm))
+            return 0;
+        Alarm other = (Alarm) o;
+
+        return this.time.compareTo(other.time);
     }
 }

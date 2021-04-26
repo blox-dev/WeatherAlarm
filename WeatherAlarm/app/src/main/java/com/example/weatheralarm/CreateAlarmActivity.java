@@ -46,6 +46,7 @@ public class CreateAlarmActivity extends AppCompatActivity {
             minuteList.add(i<10 ? '0' + String.valueOf(i) : String.valueOf(i));
 
         songsList.add("ppc1");
+        songsList.add("ship_bell");
         songsList.add("ppc2");
 
         ArrayAdapter<String> hourAdapter= new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, hourList);
@@ -83,7 +84,7 @@ public class CreateAlarmActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("time", time);
         intent.putExtra("description", descriptionEditText.getText().toString());
-        intent.putExtra("song", TTSSwitch.isChecked() ? null : songsList.get(alarmSoundSpinner.getSelectedItemPosition()));
+        intent.putExtra("song", TTSSwitch.isChecked() ? "TTS" : songsList.get(alarmSoundSpinner.getSelectedItemPosition()));
         setResult(1,intent);
         finish();
     }
