@@ -1,26 +1,25 @@
 package com.example.weatheralarm;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity{
 
     static AlarmManager manager;
 
@@ -105,7 +104,7 @@ public class MainActivity extends Activity {
         alarmList.add(alarm);
         Collections.sort(alarmList);
 
-        alarmListView = (ListView) findViewById(R.id.simpleListView);
+        alarmListView = findViewById(R.id.simpleListView);
         AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
         alarmListView.setAdapter(alarmAdapter);
     }
@@ -142,16 +141,21 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //TODO: what if user denies this
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            return;
+        }
         manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         if(firstOpen){
             firstOpen = false;
-            alarmList.add(new Alarm("08:00","Dentist","ppc1",true,null));
-            alarmList.add(new Alarm("12:12","Smechereala",null,true,null));
-            alarmList.add(new Alarm("23:15","Somn","ppc2",false,null));
+            //alarmList.add(new Alarm("08:00","Dentist","ppc1",true,null));
+            //alarmList.add(new Alarm("12:12","Smechereala",null,true,null));
+            //alarmList.add(new Alarm("23:15","Somn","ppc2",false,null));
         }
         Collections.sort(alarmList);
-        alarmListView = (ListView) findViewById(R.id.simpleListView);
+        alarmListView =  findViewById(R.id.simpleListView);
         AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
         alarmListView.setAdapter(alarmAdapter);
     }

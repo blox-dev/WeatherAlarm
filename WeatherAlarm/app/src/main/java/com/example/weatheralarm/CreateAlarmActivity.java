@@ -10,7 +10,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -28,11 +27,11 @@ public class CreateAlarmActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_alarm);
 
-        hourSpinner = (Spinner) findViewById(R.id.hourSpinner);
-        minuteSpinner = (Spinner) findViewById(R.id.minuteSpinner);
-        alarmSoundSpinner = (Spinner) findViewById(R.id.alarmSoundSpinner);
-        TTSSwitch = (Switch) findViewById(R.id.TTSSwitch);
-        descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);
+        hourSpinner = findViewById(R.id.hourSpinner);
+        minuteSpinner = findViewById(R.id.minuteSpinner);
+        alarmSoundSpinner = findViewById(R.id.alarmSoundSpinner);
+        TTSSwitch = findViewById(R.id.TTSSwitch);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
 
         ArrayList<String> hourList = new ArrayList<>();
         ArrayList<String> minuteList = new ArrayList<>();

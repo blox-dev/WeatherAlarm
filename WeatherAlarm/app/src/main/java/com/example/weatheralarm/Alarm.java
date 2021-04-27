@@ -8,6 +8,7 @@ public class Alarm implements Parcelable, Comparable {
     String time;
     String description;
     String song;
+    String weatherDescription;
     boolean active;
     PendingIntent pendingIntent;
 
@@ -15,22 +16,27 @@ public class Alarm implements Parcelable, Comparable {
     {
         time = "00:00";
         description = "Test alarm";
+        weatherDescription = null;
         song = null;
         pendingIntent = null;
     }
+
     Alarm(String time, String description, String song, boolean active, PendingIntent pendingIntent)
     {
         this.time = time;
         this.description = description;
+        this.weatherDescription = null;
         this.song = song;
         this.active = active;
         this.pendingIntent = pendingIntent;
     }
 
+
     protected Alarm(Parcel in) {
         time = in.readString();
         description = in.readString();
         song = in.readString();
+        weatherDescription = in.readString();
         active = in.readByte() != 0;
         pendingIntent = in.readParcelable(PendingIntent.class.getClassLoader());
     }
@@ -48,22 +54,8 @@ public class Alarm implements Parcelable, Comparable {
     };
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
     public String toString() {
         return "{" + time + ", " + description + ", " + song + ", " + active + "}";
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(time);
-        dest.writeString(description);
-        dest.writeString(song);
-        dest.writeByte((byte) (active ? 1 : 0));
-        dest.writeParcelable(pendingIntent, flags);
     }
 
     @Override
@@ -73,5 +65,20 @@ public class Alarm implements Parcelable, Comparable {
         Alarm other = (Alarm) o;
 
         return this.time.compareTo(other.time);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(time);
+        dest.writeString(description);
+        dest.writeString(song);
+        dest.writeString(weatherDescription);
+        dest.writeByte((byte) (active ? 1 : 0));
+        dest.writeParcelable(pendingIntent, flags);
     }
 }
