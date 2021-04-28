@@ -12,15 +12,6 @@ public class Alarm implements Parcelable, Comparable {
     boolean active;
     PendingIntent pendingIntent;
 
-    Alarm()
-    {
-        time = "00:00";
-        description = "Test alarm";
-        weatherDescription = null;
-        song = null;
-        pendingIntent = null;
-    }
-
     Alarm(String time, String description, String song, boolean active, PendingIntent pendingIntent)
     {
         this.time = time;

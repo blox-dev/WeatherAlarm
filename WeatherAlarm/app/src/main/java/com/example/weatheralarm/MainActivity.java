@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ public class MainActivity extends Activity{
 
     ArrayList<Alarm> alarmList = new ArrayList<>();
 
-    private boolean firstOpen = true;
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
@@ -75,6 +75,13 @@ public class MainActivity extends Activity{
             return;
         }
 
+        for(Alarm a: alarmList)
+            if(a.time.equals(time)) {
+                Toast.makeText(this, "You already have an alarm set at that time.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+
         // actually set the alarm
         Calendar cal_alarm = Calendar.getInstance();
         Calendar cal_now = Calendar.getInstance();
@@ -86,7 +93,6 @@ public class MainActivity extends Activity{
             cal_alarm.add(Calendar.DATE,1);
         }
 
-//        System.out.println(time);
         System.out.println("Yep clock: " + (cal_alarm.getTimeInMillis() - cal_now.getTimeInMillis()) / 1000);
 
         Intent myIntent = new Intent(this, TriggerAlarmActivity.class);
@@ -137,23 +143,47 @@ public class MainActivity extends Activity{
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            boolean ok = true;
+            for(int result: grantResults)
+                if (result == PackageManager.PERMISSION_DENIED) {
+                    ok = false;
+                    break;
+                }
+
+            if(!ok)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setCancelable(true);
+                builder.setTitle("Warning");
+                builder.setMessage("This application will not function properly without location access.");
+                builder.setPositiveButton("Ok",
+                        (dialog, which) -> main());
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+            else {
+                main();
+            }
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        main();
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //TODO: what if user denies this
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+    private void main(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return;
         }
         manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        if(firstOpen){
-            firstOpen = false;
-            //alarmList.add(new Alarm("08:00","Dentist","ppc1",true,null));
-            //alarmList.add(new Alarm("12:12","Smechereala",null,true,null));
-            //alarmList.add(new Alarm("23:15","Somn","ppc2",false,null));
-        }
         Collections.sort(alarmList);
         alarmListView =  findViewById(R.id.simpleListView);
         AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);

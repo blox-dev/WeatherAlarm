@@ -1,10 +1,12 @@
 package com.example.weatheralarm;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -34,8 +36,32 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
-            //check if all is good
-            startStuff();
+            boolean ok = true;
+            for(int result: grantResults)
+                if (result == PackageManager.PERMISSION_DENIED) {
+                    ok = false;
+                    break;
+                }
+
+            if(!ok)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setCancelable(true);
+                builder.setTitle("Warning");
+                builder.setMessage("This application will not function properly without location access.");
+                builder.setPositiveButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startStuff();
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+            else {
+                startStuff();
+            }
         }
     }
 
@@ -48,7 +74,12 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 System.out.println(location);
-                weatherAPI.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude() + "&lon=" + location.getLongitude() + "&appid=f096b18194f12f6daccbad9e40084475");
+                try {
+                    weatherAPI.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude() + "&lon=" + location.getLongitude() + "&appid=f096b18194f12f6daccbad9e40084475");
+                }
+                catch(IllegalStateException e){
+                    System.out.println("The task has already been executed.");
+                }
             }
 
             @Override
@@ -69,16 +100,13 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
         startStuff();
     }
 
-
-
     public void startStuff() {
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return;
         }
+
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3600000, 100, mLocationListener);
 
