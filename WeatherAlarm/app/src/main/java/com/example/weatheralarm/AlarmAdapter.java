@@ -1,5 +1,6 @@
 package com.example.weatheralarm;
 
+import android.app.AlarmManager;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,7 +9,10 @@ import android.widget.BaseAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class AlarmAdapter extends BaseAdapter {
     Context context;
@@ -51,8 +55,67 @@ public class AlarmAdapter extends BaseAdapter {
         descriptiontextView.setText(alarmList.get(i).description);
         activeSwitch.setChecked(alarmList.get(i).active);
 
-        activeSwitch.setOnClickListener(v -> MainActivity.switchActive(alarmList.get(i), activeSwitch.isChecked()));
+        activeSwitch.setOnClickListener(v -> switchActive(alarmList.get(i), activeSwitch.isChecked()));
 
+        convertView.setClickable(true);
+        convertView.setOnLongClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setCancelable(true);
+            builder.setTitle("Delete alarm");
+            builder.setMessage("Are you sure you want to delete \"" + alarmList.get(i).description +"\"?");
+            builder.setPositiveButton("Yes",
+                    (dialog, which) -> {
+                        if(context instanceof MainActivity)
+                        {
+                            if(activeSwitch.isChecked())
+                                switchActive(alarmList.get(i), false);
+
+                            ((MainActivity)context).alarmList.remove(alarmList.get(i));
+                            ((MainActivity)context).alarmAdapter.notifyDataSetChanged();
+                        }
+                    });
+            builder.setNegativeButton("No",
+                    (dialog, which) -> System.out.println("no"));
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            return true;
+        });
         return convertView;
+    }
+
+    public void switchActive(Alarm alarm, boolean isChecked)
+    {
+        AlarmManager manager;
+        if(context instanceof MainActivity) {
+            manager = ((MainActivity)context).manager;
+        }
+        else {
+            System.out.println("Something went wrong.");
+            return;
+        }
+
+        try {
+            if (isChecked) {
+                Calendar cal_alarm = Calendar.getInstance();
+                Calendar cal_now = Calendar.getInstance();
+
+                cal_alarm.set(Calendar.HOUR_OF_DAY, Integer.parseInt(alarm.time.substring(0, 2)));
+                cal_alarm.set(Calendar.MINUTE, Integer.parseInt(alarm.time.substring(3, 5)));
+                cal_alarm.set(Calendar.SECOND, 0);
+                if (cal_alarm.before(cal_now)) {
+                    cal_alarm.add(Calendar.DATE, 1);
+                }
+
+                manager.set(AlarmManager.RTC_WAKEUP, cal_alarm.getTimeInMillis(), alarm.pendingIntent);
+                System.out.println("Alarm activated");
+            } else {
+                System.out.println("Alarm deactivated");
+                manager.cancel(alarm.pendingIntent);
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 }

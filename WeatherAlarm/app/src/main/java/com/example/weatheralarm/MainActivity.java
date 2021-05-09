@@ -22,11 +22,12 @@ import java.util.Collections;
 
 public class MainActivity extends Activity{
 
-    static AlarmManager manager;
+    AlarmManager manager;
 
     ListView alarmListView;
 
     ArrayList<Alarm> alarmList = new ArrayList<>();
+    AlarmAdapter alarmAdapter;
 
 
     @Override
@@ -111,35 +112,8 @@ public class MainActivity extends Activity{
         Collections.sort(alarmList);
 
         alarmListView = findViewById(R.id.simpleListView);
-        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
+        alarmAdapter = new AlarmAdapter(this, alarmList);
         alarmListView.setAdapter(alarmAdapter);
-    }
-
-    static public void switchActive(Alarm alarm, boolean isChecked)
-    {
-        try {
-            if (isChecked) {
-                Calendar cal_alarm = Calendar.getInstance();
-                Calendar cal_now = Calendar.getInstance();
-
-                cal_alarm.set(Calendar.HOUR_OF_DAY, Integer.parseInt(alarm.time.substring(0, 2)));
-                cal_alarm.set(Calendar.MINUTE, Integer.parseInt(alarm.time.substring(3, 5)));
-                cal_alarm.set(Calendar.SECOND, 0);
-                if (cal_alarm.before(cal_now)) {
-                    cal_alarm.add(Calendar.DATE, 1);
-                }
-
-                manager.set(AlarmManager.RTC_WAKEUP, cal_alarm.getTimeInMillis(), alarm.pendingIntent);
-                System.out.println("Alarm activated");
-            } else {
-                System.out.println("Alarm deactivated");
-                manager.cancel(alarm.pendingIntent);
-            }
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -186,7 +160,7 @@ public class MainActivity extends Activity{
 
         Collections.sort(alarmList);
         alarmListView =  findViewById(R.id.simpleListView);
-        AlarmAdapter alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
+        alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
         alarmListView.setAdapter(alarmAdapter);
     }
 
