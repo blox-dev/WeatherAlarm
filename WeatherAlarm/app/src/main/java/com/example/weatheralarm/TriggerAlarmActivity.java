@@ -1,18 +1,24 @@
 package com.example.weatheralarm;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
@@ -32,6 +38,7 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
     TextToSpeech tts;
     TextView weatherDescription;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -50,12 +57,7 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
                 builder.setTitle("Warning");
                 builder.setMessage("This application will not function properly without location access.");
                 builder.setPositiveButton("Ok",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                startStuff();
-                            }
-                        });
+                        (dialog, which) -> startStuff());
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }
@@ -65,10 +67,69 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trigger_alarm);
+
+        startStuff();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void startStuff() {
+        weatherDescription = findViewById(R.id.weatherDescription);
+        TextView alarmTime = findViewById(R.id.alarmTime);
+        TextView alarmDescription = findViewById(R.id.alarmDescription);
+
+        System.out.println("Alarm received");
+
+        Intent intent = getIntent();
+
+        time = intent.getStringExtra("time");
+        description = intent.getStringExtra("description");
+        songName = intent.getStringExtra("song");
+
+        alarmTime.setText(time);
+        alarmDescription.setText(description);
+
+        if (!songName.equals("TTS")) {
+            int songFileId = getResources().getIdentifier(songName, "raw", getPackageName());
+
+            if (songFileId == 0)
+                return;
+
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), songFileId);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.start();
+            mIsMediaPlayerReleased = false;
+        }
+
+
+        if(!isNetworkAvailable()) {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkRequest networkChange = new NetworkRequest.Builder().build();
+            cm.registerNetworkCallback(networkChange, new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    search();
+                }
+            });
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();
+        return activeNetworkInfo != null;
+    }
+
+    void search()
+    {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }
 
         mLocationListener = new LocationListener() {
             @Override
@@ -97,45 +158,10 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
 
             }
         };
-        startStuff();
-    }
-
-    public void startStuff() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return;
-        }
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3600000, 100, mLocationListener);
-
-        weatherDescription = findViewById(R.id.weatherDescription);
-        TextView alarmTime = findViewById(R.id.alarmTime);
-        TextView alarmDescription = findViewById(R.id.alarmDescription);
-
-        System.out.println("Alarm received");
-
-        Intent intent = getIntent();
-
-        time = intent.getStringExtra("time");
-        description = intent.getStringExtra("description");
-        songName = intent.getStringExtra("song");
-
-        alarmTime.setText(time);
-        alarmDescription.setText(description);
-
-        if (!songName.equals("TTS")) {
-            int songFileId = getResources().getIdentifier(songName, "raw", getPackageName());
-
-            if (songFileId == 0)
-                return;
-
-            mediaPlayer = MediaPlayer.create(getApplicationContext(), songFileId);
-            mediaPlayer.setLooping(true);
-            mediaPlayer.start();
-            mIsMediaPlayerReleased = false;
-        }
     }
 
     public void speak(String toSpeak)
@@ -162,6 +188,8 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
             mediaPlayer.release();
             mIsMediaPlayerReleased = true;
         }
+        if(tts != null)
+            tts.stop();
     }
 
     public void onExitButtonPress(View view) {
@@ -171,7 +199,10 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
             mediaPlayer.release();
             mIsMediaPlayerReleased = true;
         }
-        mLocationManager.removeUpdates(mLocationListener);
+        if(mLocationManager != null)
+            mLocationManager.removeUpdates(mLocationListener);
+        if(tts != null)
+            tts.stop();
         finish();
     }
 }

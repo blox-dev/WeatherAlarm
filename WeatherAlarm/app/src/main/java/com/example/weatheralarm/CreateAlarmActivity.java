@@ -55,9 +55,6 @@ public class CreateAlarmActivity extends AppCompatActivity {
         ArrayAdapter<String> minuteAdapter= new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, minuteList);
         minuteSpinner.setAdapter(minuteAdapter);
 
-//        hourSpinner.setSelection(rightNow.get(Calendar.HOUR_OF_DAY));
-//        minuteSpinner.setSelection(rightNow.get(Calendar.MINUTE));
-
         if(rightNow.get(Calendar.MINUTE) == 59)
         {
             hourSpinner.setSelection(rightNow.get(Calendar.HOUR_OF_DAY) + 1);
