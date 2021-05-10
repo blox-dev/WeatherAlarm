@@ -107,15 +107,19 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
 
 
         if(!isNetworkAvailable()) {
+            System.out.println("network unavailable.");
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkRequest networkChange = new NetworkRequest.Builder().build();
             cm.registerNetworkCallback(networkChange, new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
+                    System.out.println("Network is good");
                     search();
                 }
             });
         }
+        else
+            search();
     }
 
     private boolean isNetworkAvailable() {

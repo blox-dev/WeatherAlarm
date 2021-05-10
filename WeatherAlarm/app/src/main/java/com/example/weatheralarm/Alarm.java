@@ -1,48 +1,24 @@
 package com.example.weatheralarm;
 
-import android.app.PendingIntent;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.Intent;
 
-public class Alarm implements Parcelable, Comparable {
+public class Alarm implements Comparable {
     String time;
     String description;
     String song;
     String weatherDescription;
     boolean active;
-    PendingIntent pendingIntent;
+    Intent intent;
 
-    Alarm(String time, String description, String song, boolean active, PendingIntent pendingIntent)
+    Alarm(String time, String description, String song, boolean active, Intent intent)
     {
         this.time = time;
         this.description = description;
         this.weatherDescription = null;
         this.song = song;
         this.active = active;
-        this.pendingIntent = pendingIntent;
+        this.intent = intent;
     }
-
-
-    protected Alarm(Parcel in) {
-        time = in.readString();
-        description = in.readString();
-        song = in.readString();
-        weatherDescription = in.readString();
-        active = in.readByte() != 0;
-        pendingIntent = in.readParcelable(PendingIntent.class.getClassLoader());
-    }
-
-    public static final Creator<Alarm> CREATOR = new Creator<Alarm>() {
-        @Override
-        public Alarm createFromParcel(Parcel in) {
-            return new Alarm(in);
-        }
-
-        @Override
-        public Alarm[] newArray(int size) {
-            return new Alarm[size];
-        }
-    };
 
     @Override
     public String toString() {
@@ -56,20 +32,5 @@ public class Alarm implements Parcelable, Comparable {
         Alarm other = (Alarm) o;
 
         return this.time.compareTo(other.time);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(time);
-        dest.writeString(description);
-        dest.writeString(song);
-        dest.writeString(weatherDescription);
-        dest.writeByte((byte) (active ? 1 : 0));
-        dest.writeParcelable(pendingIntent, flags);
     }
 }

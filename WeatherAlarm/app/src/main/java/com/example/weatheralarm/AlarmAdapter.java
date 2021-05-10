@@ -1,6 +1,7 @@
 package com.example.weatheralarm;
 
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,10 +73,11 @@ public class AlarmAdapter extends BaseAdapter {
 
                             ((MainActivity)context).alarmList.remove(alarmList.get(i));
                             ((MainActivity)context).alarmAdapter.notifyDataSetChanged();
+                            ((MainActivity)context).saveAlarmList();
                         }
                     });
             builder.setNegativeButton("No",
-                    (dialog, which) -> System.out.println("no"));
+                    (dialog, which) -> {});
             AlertDialog dialog = builder.create();
             dialog.show();
             return true;
@@ -95,6 +97,19 @@ public class AlarmAdapter extends BaseAdapter {
         }
 
         try {
+            // intent must be EXACTLY the same in order to be cancelled
+            alarm.intent.setAction(null);
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, alarm.intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            manager.cancel(pendingIntent);
+
+            if(!isChecked) {
+                int index = ((MainActivity) context).alarmList.indexOf(alarm);
+                ((MainActivity) context).alarmList.get(index).active = false;
+            }
+
+            System.out.println("Alarm deactivated");
+
             if (isChecked) {
                 Calendar cal_alarm = Calendar.getInstance();
                 Calendar cal_now = Calendar.getInstance();
@@ -106,12 +121,13 @@ public class AlarmAdapter extends BaseAdapter {
                     cal_alarm.add(Calendar.DATE, 1);
                 }
 
-                manager.set(AlarmManager.RTC_WAKEUP, cal_alarm.getTimeInMillis(), alarm.pendingIntent);
-                System.out.println("Alarm activated");
-            } else {
-                System.out.println("Alarm deactivated");
-                manager.cancel(alarm.pendingIntent);
+                manager.set(AlarmManager.RTC_WAKEUP, cal_alarm.getTimeInMillis(), pendingIntent);
+
+                int index = ((MainActivity) context).alarmList.indexOf(alarm);
+                ((MainActivity) context).alarmList.get(index).active = true;
+                System.out.println(" and then activated again.");
             }
+            ((MainActivity)context).saveAlarmList();
         }
         catch(Exception e)
         {

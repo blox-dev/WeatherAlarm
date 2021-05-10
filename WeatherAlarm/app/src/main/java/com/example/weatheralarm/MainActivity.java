@@ -6,6 +6,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
@@ -20,31 +21,84 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 
+import org.json.*;
+
 public class MainActivity extends Activity{
 
     AlarmManager manager;
 
     ListView alarmListView;
-
+    
     ArrayList<Alarm> alarmList = new ArrayList<>();
     AlarmAdapter alarmAdapter;
 
+    SharedPreferences sharedPreferences;
 
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        System.out.println("restore");
+    public void saveAlarmList(){
+        JSONArray listJson = new JSONArray();
 
-        if(savedInstanceState.containsKey("alarmList"))
-            alarmList = savedInstanceState.getParcelableArrayList("alarmList");
+        Alarm a;
+        try {
+            for(int i=0 ; i<alarmList.size() ; ++i) {
+                a = alarmList.get(i);
+                JSONObject alarmJson = new JSONObject();
+                alarmJson.put("description", a.description);
+                alarmJson.put("active", a.active);
+                alarmJson.put("intent", a.intent.toUri(0));
+                alarmJson.put("song", a.song);
+                alarmJson.put("time", a.time);
+                listJson.put(i, alarmJson);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        sharedPreferences.edit().putString("alarmList", listJson.toString()).commit();
+    }
+
+    public void loadAlarmList(){
+        if(sharedPreferences == null)
+            sharedPreferences = getSharedPreferences("USER", MODE_PRIVATE);
+
+        if (!sharedPreferences.contains("alarmList"))
+            return;
+
+        String alarmString = sharedPreferences.getString("alarmList", null);
+        if(alarmString == null)
+            return;
+
+        alarmList.clear();
+
+        try {
+            JSONArray alarmJson = new JSONArray(alarmString);
+            for (int i = 0; i < alarmJson.length(); ++i) {
+                JSONObject a = alarmJson.getJSONObject(i);
+
+                String description = a.getString("description");
+                boolean active = a.getBoolean("active");
+                Intent intent = Intent.parseUri(a.getString("intent"), 0);
+                String song = a.getString("song");
+                String time = a.getString("time");
+
+                alarmList.add(new Alarm(time, description, song, active, intent));
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        System.out.println("save");
+    protected void onResume() {
+        super.onResume();
+        loadAlarmList();
+    }
 
-        outState.putParcelableArrayList("alarmList", alarmList);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveAlarmList();
     }
 
     @Override
@@ -102,18 +156,16 @@ public class MainActivity extends Activity{
         myIntent.putExtra("description", description);
         myIntent.putExtra("song", song);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, myIntent, PendingIntent.FLAG_ONE_SHOT);
+        Alarm alarm = new Alarm(time, description, song, true, myIntent);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, alarm.intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         manager.set(AlarmManager.RTC_WAKEUP,cal_alarm.getTimeInMillis(), pendingIntent);
 
-        Alarm alarm = new Alarm(time, description, song, true, pendingIntent);
-
         alarmList.add(alarm);
-        Collections.sort(alarmList);
 
-        alarmListView = findViewById(R.id.simpleListView);
-        alarmAdapter = new AlarmAdapter(this, alarmList);
-        alarmListView.setAdapter(alarmAdapter);
+        prepareAlarmView();
+
+        saveAlarmList();
     }
 
     @Override
@@ -144,10 +196,20 @@ public class MainActivity extends Activity{
         }
     }
 
+    void prepareAlarmView(){
+        Collections.sort(alarmList);
+        alarmListView =  findViewById(R.id.simpleListView);
+        alarmAdapter = new AlarmAdapter(this, alarmList);
+        alarmListView.setAdapter(alarmAdapter);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sharedPreferences = getSharedPreferences("USER", MODE_PRIVATE);
+
         main();
     }
 
@@ -158,10 +220,7 @@ public class MainActivity extends Activity{
         }
         manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        Collections.sort(alarmList);
-        alarmListView =  findViewById(R.id.simpleListView);
-        alarmAdapter = new AlarmAdapter(getApplicationContext(), alarmList);
-        alarmListView.setAdapter(alarmAdapter);
+        prepareAlarmView();
     }
 
     public void addAlarm(View view) {
