@@ -45,7 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:gravity="center"
-        android:text="Weather description: loading....\n Check if you have \n internet connection"
+        android:text="Weather description: loading....\n Check if you have \n internet and location \n activated"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.508"

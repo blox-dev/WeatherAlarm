@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -106,11 +107,9 @@ public class AlarmAdapter extends BaseAdapter {
             if(!isChecked) {
                 int index = ((MainActivity) context).alarmList.indexOf(alarm);
                 ((MainActivity) context).alarmList.get(index).active = false;
+                Toast.makeText(context, "Alarm deactivated.", Toast.LENGTH_SHORT).show();
             }
-
-            System.out.println("Alarm deactivated");
-
-            if (isChecked) {
+            else {
                 Calendar cal_alarm = Calendar.getInstance();
                 Calendar cal_now = Calendar.getInstance();
 
@@ -125,7 +124,19 @@ public class AlarmAdapter extends BaseAdapter {
 
                 int index = ((MainActivity) context).alarmList.indexOf(alarm);
                 ((MainActivity) context).alarmList.get(index).active = true;
-                System.out.println(" and then activated again.");
+
+                long secondsUntil = (cal_alarm.getTimeInMillis() - cal_now.getTimeInMillis())/1000;
+                long minutesUntil = (secondsUntil / 60) % 60;
+                long hoursUntil = (secondsUntil / 3600) % 24;
+                long daysUntil = (secondsUntil / (24 *3600));
+
+                StringBuilder toastMsg = new StringBuilder("Alarm will go off in ");
+
+                toastMsg.append((daysUntil == 0) ? "": daysUntil + " days, ");
+                toastMsg.append((hoursUntil == 0) ? "": hoursUntil + " hours, ");
+                toastMsg.append((minutesUntil == 0) ? secondsUntil + " seconds." : minutesUntil + " minutes.");
+
+                Toast.makeText(context, toastMsg, Toast.LENGTH_LONG).show();
             }
             ((MainActivity)context).saveAlarmList();
         }

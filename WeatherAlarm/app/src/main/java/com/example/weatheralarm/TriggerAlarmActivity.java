@@ -209,4 +209,10 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
             tts.stop();
         finish();
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        onExitButtonPress(null);
+    }
 }

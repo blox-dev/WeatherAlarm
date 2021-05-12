@@ -126,7 +126,7 @@ public class MainActivity extends Activity{
 
         if(time == null || description == null || song == null)
         {
-            Toast.makeText(this,"Something went wrong", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"Something went wrong.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -148,8 +148,6 @@ public class MainActivity extends Activity{
             cal_alarm.add(Calendar.DATE,1);
         }
 
-        System.out.println("Yep clock: " + (cal_alarm.getTimeInMillis() - cal_now.getTimeInMillis()) / 1000);
-
         Intent myIntent = new Intent(this, TriggerAlarmActivity.class);
 
         myIntent.putExtra("time", time);
@@ -162,6 +160,21 @@ public class MainActivity extends Activity{
         manager.set(AlarmManager.RTC_WAKEUP,cal_alarm.getTimeInMillis(), pendingIntent);
 
         alarmList.add(alarm);
+
+        long secondsUntil = (cal_alarm.getTimeInMillis() - cal_now.getTimeInMillis())/1000;
+        long minutesUntil = (secondsUntil / 60) % 60;
+        long hoursUntil = (secondsUntil / 3600) % 24;
+        long daysUntil = (secondsUntil / (24 *3600));
+
+        System.out.println("Yep clock: " + secondsUntil);
+
+        StringBuilder toastMsg = new StringBuilder("Alarm will go off in ");
+
+        toastMsg.append((daysUntil == 0) ? "": daysUntil + " days, ");
+        toastMsg.append((hoursUntil == 0) ? "": hoursUntil + " hours, ");
+        toastMsg.append((minutesUntil == 0) ? secondsUntil + " seconds." : minutesUntil + " minutes.");
+
+        Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
 
         prepareAlarmView();
 
@@ -225,7 +238,7 @@ public class MainActivity extends Activity{
 
     public void addAlarm(View view) {
         if(alarmList.size() > 99)
-            Toast.makeText(this, "Too many alarms lol", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "You have too many alarms set.", Toast.LENGTH_LONG).show();
         else {
             Intent intent = new Intent(this, CreateAlarmActivity.class);
             startActivityForResult(intent, 1);
