@@ -1,15 +1,30 @@
 plugins {
-    id 'com.android.application'
+    alias(libs.plugins.android.application)
+}
+
+// Load the secret key from local.properties
+def secretKey = ""
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    def localProperties = new Properties()
+    localProperties.load(new FileInputStream(localPropertiesFile))
+    secretKey = localProperties.getProperty("SECRET_KEY")
+} else {
+    throw new Exception("local.properties file is missing or SECRET_KEY is not defined")
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    namespace 'com.example.weatheralarm'
+    compileSdk 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId "com.example.weatheralarm"
-        minSdkVersion 16
-        targetSdkVersion 30
+        minSdk 24
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -17,24 +32,26 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField "String", "OWM_SECRET_KEY", "\"${secretKey}\""
+        }
         release {
+            buildConfigField "String", "OWM_SECRET_KEY", "\"${secretKey}\""
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
 }

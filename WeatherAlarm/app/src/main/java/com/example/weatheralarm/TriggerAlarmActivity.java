@@ -140,6 +140,7 @@ public class TriggerAlarmActivity extends AppCompatActivity implements AsyncResp
             public void onLocationChanged(@NonNull Location location) {
                 System.out.println(location);
                 try {
+                    String own_secret_key = BuildConfig.OWM_SECRET_KEY;
                     weatherAPI.execute("https://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude() + "&lon=" + location.getLongitude() + "&appid=f096b18194f12f6daccbad9e40084475");
                 }
                 catch(IllegalStateException e){
