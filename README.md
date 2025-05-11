@@ -18,7 +18,7 @@ WeatherAlarm is an Android application that allows users to set alarms that use 
 ### Installation
 1. Clone this repository:
    ```sh
-   git clone https://github.com/yourusername/weatheralarm.git
+   git clone https://github.com/blox-dev/WeatherAlarm.git
    cd weatheralarm
    ```
 2. Open the project in Android Studio.
